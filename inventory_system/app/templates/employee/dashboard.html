@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Dashboard - CKS Business Management System{% endblock %}
+
+{% block styles %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    
+    .recent-sales {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Employee Dashboard</h1>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('employee.add_sale') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Record Sale
+        </a>
+        <a href="{{ url_for('employee.search_products') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-search me-2"></i>Search Products
+        </a>
+    </div>
+</div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-4">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">UGX{{ "%.2f"|format(total_sales) }}</h4>
+                            <p class="card-text">My Sales</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ sales_count }}</h4>
+                            <p class="card-text">Transactions</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ available_products }}</h4>
+                            <p class="card-text">Available Products</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-boxes fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Sales -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-receipt me-2"></i>My Recent Sales
+                    </h5>
+                </div>
+                <div class="card-body recent-sales">
+                    {% if recent_sales %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Price/Unit</th>
+                                        <th>Total</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in recent_sales %}
+                                        <tr>
+                                            <td>{{ sale.product.name }}</td>
+                                            <td>{{ sale.quantity_sold }}</td>
+                                            <td>UGX{{ "%.2f"|format(sale.price_per_unit) }}</td>
+                                            <td>UGX{{ "%.2f"|format(sale.total_amount) }}</td>
+                                            <td>{{ sale.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No sales recorded yet</h4>
+                            <p class="text-muted">Start recording sales to see them here</p>
+                            <a href="{{ url_for('employee.add_sale') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Record Your First Sale
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-refresh dashboard every 30 seconds
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}

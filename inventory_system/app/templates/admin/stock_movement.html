@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Movement - Inventory Management System{% endblock %}
+
+{% block styles %}
+<style>
+    .stock-table {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stock-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .stock-row {
+        transition: all 0.3s ease;
+    }
+    
+    .stock-row:hover {
+        background-color: #f8f9ff;
+    }
+    
+    .stock-positive {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .stock-negative {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .stock-neutral {
+        color: #6c757d;
+        font-weight: bold;
+    }
+    
+    .low-stock {
+        background-color: #fff3cd !important;
+    }
+    
+    .export-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+    
+    .filter-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Stock Movement</h1>
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <button class="export-btn" onclick="exportToCSV()">
+                <i class="fas fa-file-csv me-2"></i>Export to CSV
+            </button>
+        </div>
+    </div>
+    
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="categoryFilter" class="form-label">Filter by Category</label>
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Products</option>
+                    <!-- Categories would be dynamically populated -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="stockStatusFilter" class="form-label">Filter by Stock Status</label>
+                <select class="form-select" id="stockStatusFilter">
+                    <option value="">All Products</option>
+                    <option value="low">Low Stock (< 10)</option>
+                    <option value="out">Out of Stock (0)</option>
+                    <option value="normal">Normal Stock (>= 10)</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary w-100" onclick="applyFilters()">
+                    <i class="fas fa-filter me-2"></i>Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card stock-table">
+        <div class="stock-header">
+            <div class="row">
+                <div class="col-md-3">
+                    <h5 class="mb-0">Product Details</h5>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="mb-0">Opening Stock</h5>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="mb-0">Stock Added</h5>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="mb-0">Units Sold</h5>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="mb-0">Current Balance</h5>
+                </div>
+                <div class="col-md-1">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            {% if stock_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="stockTable">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Opening Stock</th>
+                                <th>Stock Added</th>
+                                <th>Units Sold</th>
+                                <th>Current Balance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in stock_data %}
+                                <tr class="stock-row {% if item.current_balance < 10 %}low-stock{% endif %}" 
+                                    data-product-id="{{ item.product.id }}"
+                                    data-stock-status="{% if item.current_balance == 0 %}out{% elif item.current_balance < 10 %}low{% else %}normal{% endif %}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                {% if item.current_balance == 0 %}
+                                                    <i class="fas fa-exclamation-circle text-danger"></i>
+                                                {% elif item.current_balance < 10 %}
+                                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                                {% else %}
+                                                    <i class="fas fa-check-circle text-success"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <strong>{{ item.product.name }}</strong>
+                                                <div class="text-muted small">Cost: UGX{{ "%.2f"|format(item.product.cost_price) }} | Sell: UGX{{ "%.2f"|format(item.product.selling_price) }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.product.sku }}</td>
+                                    <td class="stock-neutral">{{ item.opening_stock }}</td>
+                                    <td class="stock-positive">+{{ item.total_added }}</td>
+                                    <td class="stock-negative">-{{ item.total_sold }}</td>
+                                    <td class="{% if item.current_balance < 10 %}stock-negative{% else %}stock-positive{% endif %}">
+                                        <strong>{{ item.current_balance }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('admin.add_stock') }}" class="btn btn-sm btn-success" title="Add Stock">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-info" onclick="viewDetails({{ item.product.id }})" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No products found</h4>
+                    <p class="text-muted">Add products to see stock movement</p>
+                    <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Product
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stock Details Modal -->
+<div class="modal fade" id="stockDetailsModal" tabindex="-1" aria-labelledby="stockDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stockDetailsModalLabel">Stock Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="stockDetailsContent">
+                    <!-- Details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printDetails()">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+<td>
+    <div class="d-flex flex-column">
+        <div>
+            <strong>{{ item.product.name }}</strong>
+            <div class="text-muted small">SKU: {{ item.product.sku }}</div>
+            <div class="text-muted small">Category: {{ item.product.category }}</div>
+            {% if item.product.description %}
+                <div class="text-muted small">{{ item.product.description[:50] }}{% if item.product.description|length > 50 %}...{% endif %}</div>
+            {% endif %}
+        </div>
+    </div>
+    <td>{{ item.product.sku }}</td>
+    <td class="stock-neutral">{{ item.opening_stock }}</td>
+    <td class="stock-positive">+{{ item.total_added }}</td>
+    <td class="stock-negative">-{{ item.total_sold }}</td>
+    <td class="{% if item.current_balance < item.product.low_stock_threshold %}stock-negative{% else %}stock-positive{% endif %}">
+        <strong>{{ item.current_balance }}</strong>
+    </td>
+    <td>
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.add_stock') }}" class="btn btn-sm btn-success" title="Add Stock">
+                <i class="fas fa-plus"></i>
+            </a>
+            <a href="{{ url_for('admin.add_product') }}?product_id={{ item.product.id }}" class="btn btn-sm btn-primary" title="Edit Product">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{{ url_for('admin.stock_history', product_id=item.product.id) }}" class="btn btn-sm btn-info" title="View History">
+                <i class="fas fa-history"></i>
+            </a>
+        </div>
+    </td>
+</td>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Stock Movement</h1>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Products
+        </a>
+        <a href="{{ url_for('admin.advanced_search') }}" class="btn btn-info">
+            <i class="fas fa-filter me-2"></i>Advanced Search
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Apply filters
+    function applyFilters() {
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const stockStatusFilter = document.getElementById('stockStatusFilter').value;
+        const rows = document.querySelectorAll('#stockTable tbody tr');
+        
+        rows.forEach(row => {
+            let showRow = true;
+            
+            // Filter by stock status
+            if (stockStatusFilter) {
+                const stockStatus = row.getAttribute('data-stock-status');
+                if (stockStatus !== stockStatusFilter) {
+                    showRow = false;
+                }
+            }
+            
+            // Show/hide row based on filters
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+    
+    // View product details
+    function viewDetails(productId) {
+        // In a real app, this would make an AJAX request to get details
+        // For now, we'll just show a modal with placeholder content
+        const modal = new bootstrap.Modal(document.getElementById('stockDetailsModal'));
+        const content = document.getElementById('stockDetailsContent');
+        
+        content.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Loading stock details...</p>
+            </div>
+        `;
+        
+        modal.show();
+        
+        // Simulate loading delay
+        setTimeout(() => {
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Stock Additions</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Quantity</th>
+                                    <th>Added By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2023-11-01</td>
+                                    <td>25</td>
+                                    <td>Admin</td>
+                                </tr>
+                                <tr>
+                                    <td>2023-11-15</td>
+                                    <td>15</td>
+                                    <td>Admin</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Recent Sales</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Quantity</th>
+                                    <th>Sold By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2023-11-20</td>
+                                    <td>5</td>
+                                    <td>Employee</td>
+                                </tr>
+                                <tr>
+                                    <td>2023-11-22</td>
+                                    <td>3</td>
+                                    <td>Employee</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }, 1000);
+    }
+    
+    // Print details
+    function printDetails() {
+        window.print();
+    }
+    
+    // Export to CSV
+    function exportToCSV() {
+        const table = document.getElementById('stockTable');
+        let csv = [];
+        
+        // Get headers
+        const headers = [];
+        table.querySelectorAll('thead th').forEach(th => {
+            headers.push(th.textContent.trim());
+        });
+        csv.push(headers.join(','));
+        
+        // Get data rows
+        table.querySelectorAll('tbody tr').forEach(row => {
+            const rowData = [];
+            row.querySelectorAll('td').forEach(td => {
+                rowData.push(td.textContent.trim());
+            });
+            csv.push(rowData.join(','));
+        });
+        
+        // Create download link
+        const csvContent = csv.join('
+');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `stock_movement_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // Initialize filters
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+        document.getElementById('stockStatusFilter').addEventListener('change', applyFilters);
+    });
+</script>
+{% endblock %}

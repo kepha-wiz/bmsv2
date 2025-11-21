@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Make Sale{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Make a Sale</h2>
+
+    <form method="POST" action="{{ url_for('employee.make_sale') }}">
+        <div class="mb-3">
+            <label for="product" class="form-label">Select Product</label>
+            <select class="form-select" id="product" name="product_id" required>
+                <option value="">-- Choose Product --</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}">
+                        {{ product.name }} (SKU: {{ product.sku }}) - Stock: {{ product.quantity_in_stock }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="quantity" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fa fa-shopping-cart"></i> Complete Sale
+        </button>
+    </form>
+
+    <hr class="my-4">
+
+    <h4>Note:</h4>
+    <p>Ensure the quantity does not exceed available stock.</p>
+</div>
+{% endblock %}

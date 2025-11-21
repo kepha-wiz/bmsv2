@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - CKS Business Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Reports</h1>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Generate Reports</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.generate_report', report_type='sales') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                {{ form.start_date.label(class="form-label") }}
+                                {{ form.start_date(class="form-control") }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.end_date.label(class="form-label") }}
+                                {{ form.end_date(class="form-control") }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Export Format</label>
+                                <select name="export_format" class="form-select">
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-pdf me-2"></i>Generate Sales Report
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" formaction="{{ url_for('admin.generate_report', report_type='stock') }}" class="btn btn-success">
+                                    <i class="fas fa-file-excel me-2"></i>Generate Stock Report
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Report Information</h5>
+                </div>
+                   <div class="card-body">
+                    <div class="accordion" id="reportInfoAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="salesReportHeading">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#salesReportCollapse" aria-expanded="true" aria-controls="salesReportCollapse">
+                                    Sales Report
+                                </button>
+                            </h2>
+                            <div id="salesReportCollapse" class="accordion-collapse collapse show" aria-labelledby="salesReportHeading" data-bs-parent="#reportInfoAccordion">
+                                <div class="accordion-body">
+                                    <p>The sales report includes:</p>
+                                    <ul>
+                                        <li>Total sales amount</li>
+                                        <li>Total units sold</li>
+                                        <li>Number of transactions</li>
+                                        <li>Detailed sales information</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="stockReportHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stockReportCollapse" aria-expanded="false" aria-controls="stockReportCollapse">
+                                    Stock Report
+                                </button>
+                            </h2>
+                            <div id="stockReportCollapse" class="accordion-collapse collapse" aria-labelledby="stockReportHeading" data-bs-parent="#reportInfoAccordion">
+                                <div class="accordion-body">
+                                    <p>The stock report includes:</p>
+                                    <ul>
+                                        <li>Stock additions within date range</li>
+                                        <li>Current stock levels</li>
+                                        <li>Stock value calculations</li>
+                                        <li>Low stock indicators</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

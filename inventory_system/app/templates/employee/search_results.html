@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - CKS Business Management System{% endblock %}
+
+{% block styles %}
+<style>
+    .search-header {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .search-query {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .search-result {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .search-result:last-child {
+        border-bottom: none;
+    }
+
+    .search-result-title {
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .search-result-meta span {
+        margin-right: 15px;
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    .search-result-stock.high { color: green; }
+    .search-result-stock.medium { color: orange; }
+    .search-result-stock.low { color: red; }
+    .search-result-stock.out { color: gray; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Search Results</h1>
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('employee.products') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Products
+            </a>
+        </div>
+    </div>
+    
+    <div class="search-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-search me-2"></i>
+                <span class="search-query">"{{ query }}"</span>
+                <span class="text-muted ms-2">{{ products|length }} result{{ 's' if products|length != 1 else '' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    {% if products %}
+        <div class="search-results">
+            {% for product in products %}
+                <div class="search-result">
+                    <div>
+                        <h5 class="search-result-title">{{ product.name }}</h5>
+                        <div class="search-result-meta">
+                            <span class="search-result-sku">SKU: {{ product.sku }}</span>
+                            <span class="search-result-price">UGX {{ "{:,.2f}".format(product.selling_price) }}</span>
+                            <span class="search-result-stock {{ 'high' if product.quantity_in_stock >= 50 else 'medium' if product.quantity_in_stock >= 10 else 'low' if product.quantity_in_stock > 0 else 'out' }}">
+                                {{ product.quantity_in_stock }} in stock
+                            </span>
+                        </div>
+                    </div>
+                    <div class="search-result-actions">
+                        <a href="{{ url_for('employee.add_sale') }}?product_id={{ product.id }}" class="btn btn-sm btn-success">
+                            <i class="fas fa-shopping-cart"></i> Sell
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results text-center py-5">
+            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+            <h4>No products found</h4>
+            <p>Try adjusting your search terms.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

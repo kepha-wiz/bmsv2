@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Record Sale - CKS Business Management System{% endblock %}
+
+{% block styles %}
+<style>
+    .sale-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .product-info {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .price-display {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .form-floating {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Record Sale</h1>
+        <a href="{{ url_for('employee.dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card sale-form">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>Sale Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="saleForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="form-floating mb-3">
+                            {{ form.product_id.label(class="form-label") }}
+                            {{ form.product_id(class="form-select") }}
+                            {% if form.product_id.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.product_id.errors %}
+                                        <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-floating mb-3">
+                            {{ form.quantity.label(class="form-label") }}
+                            {{ form.quantity(class="form-control") }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.quantity.errors %}
+                                        <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-success") }}
+                            <a href="{{ url_for('employee.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Product Info
+                    </h5>
+                </div>
+                <div class="card-body product-info" id="productInfo">
+                    <p class="text-muted">Select a product to see details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="form-floating mb-3 position-relative">
+    {{ form.product_id.label(class="form-label") }}
+    {{ form.product_id(class="form-select") }}
+    {% if form.product_id.errors %}
+        <div class="text-danger mt-1">
+            {% for error in form.product_id.errors %}
+                <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<div class="product-info" id="productInfo">
+    <p class="text-muted">Select a product to see details</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Product selection change handler
+    document.getElementById('product_id').addEventListener('change', function() {
+        const productId = this.value;
+        
+        if (productId) {
+            // Fetch product details (in real app, this would be an AJAX call)
+            // For demo, we'll use hardcoded data
+            const products = {
+                1: { name: 'Laptop Computer', sku: 'LAPTOP001', selling_price: 1200, quantity_in_stock: 15 },
+                2: { name: 'Wireless Mouse', sku: 'MOUSE001', selling_price: 25, quantity_in_stock: 50 },
+                3: { name: 'USB Keyboard', sku: 'KEYBOARD001', selling_price: 40, quantity_in_stock: 30 }
+            };
+            
+            const product = products[productId];
+            if (product) {
+                updateProductInfo(product);
+            }
+        } else {
+            document.getElementById('productInfo').innerHTML = '<p class="text-muted">Select a product to see details</p>';
+        }
+    });
+    
+    function updateProductInfo(product) {
+        document.getElementById('productInfo').innerHTML = `
+            <h6>${product.name}</h6>
+            <p><strong>SKU:</strong> ${product.sku}</p>
+            <p><strong>Selling Price:</strong> <span class="price-display">UGX${product.selling_price.toFixed(2)}</span></p>
+            <p><strong>Stock Available:</strong> ${product.quantity_in_stock} units</p>
+        `;
+    }
+    
+    // Form submission with loading state
+    document.getElementById('saleForm').addEventListener('submit', function(e) {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        // Simulate loading (remove this in production)
+        setTimeout(() => {
+            // Form will submit normally
+        }, 500);
+    });
+    
+    // Auto-focus on product selection
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('product_id').focus();
+    });
+    function updateProductInfo(product) {
+    const productInfo = document.getElementById('productInfo');
+    
+    if (product) {
+        productInfo.innerHTML = `
+            <h6>${product.name}</h6>
+            <p><strong>SKU:</strong> ${product.sku}</p>
+            <p><strong>Category:</strong> ${product.category}</p>
+            ${product.description ? `<p><strong>Description:</strong> ${product.description}</p>` : ''}
+            <p><strong>Selling Price:</strong> <span class="price-display">UGX${product.selling_price.toFixed(2)}</span></p>
+            <p><strong>Stock Available:</strong> ${product.quantity_in_stock} units</p>
+        `;
+    } else {
+        productInfo.innerHTML = '<p class="text-muted">Select a product to see details</p>';
+    }
+}
+</script>
+{% endblock %}

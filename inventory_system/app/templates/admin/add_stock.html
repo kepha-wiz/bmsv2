@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Add Stock - CKS Business Management System{% endblock %}
+
+{% block styles %}
+<style>
+    .price-change-section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .price-indicator {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .price-up {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .price-down {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .price-same {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .product-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .current-prices {
+        display: flex;
+        gap: 20px;
+        justify-content: space-around;
+        margin-top: 10px;
+    }
+    
+    .price-box {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .price-box strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .price-box .price {
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    .profit-margin {
+        font-size: 12px;
+        color: #28a745;
+        margin-top: 5px;
+    }
+    
+    .reason-section {
+        background-color: #fff3cd;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+    }
+    
+    .help-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 10px;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Add Stock & Update Prices</h1>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Products
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Stock Addition Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="stockForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.product_id.label(class="form-label") }}
+                            {{ form.product_id(class="form-select") }}
+                            {% if form.product_id.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.product_id.errors %}
+                                        <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.quantity.label(class="form-label") }}
+                            {{ form.quantity(class="form-control") }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.quantity.errors %}
+                                        <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="price-change-section">
+                            <h6 class="mb-3">
+                                <i class="fas fa-tag me-2"></i>Price Update (Optional)
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.cost_price.label(class="form-label") }}
+                                        <div class="input-group">
+                                            {{ form.cost_price(class="form-control", placeholder="Leave blank to keep current", step="0.01") }}
+                                            <span class="input-group-text">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </span>
+                                        </div>
+                                        {% if form.cost_price.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.cost_price.errors %}
+                                                    <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.selling_price.label(class="form-label") }}
+                                        <div class="input-group">
+                                            {{ form.selling_price(class="form-control", placeholder="Leave blank to keep current", step="0.01") }}
+                                            <span class="input-group-text">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </span>
+                                        </div>
+                                        {% if form.selling_price.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.selling_price.errors %}
+                                                    <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.reason.label(class="form-label") }}
+                                {{ form.reason(class="form-control", placeholder="e.g., Supplier price increase, Inflation adjustment") }}
+                                {% if form.reason.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.reason.errors %}
+                                            <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="help-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Leave price fields blank if you only want to add stock without changing prices
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            {{ form.submit(class="btn btn-success") }}
+                            <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Price Impact
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="pricePreview">
+                        <p class="text-muted">Select a product to see price impact</p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Quick Tips:</h6>
+                        <ul class="small">
+                            <li>Update prices when supplier costs change</li>
+                            <li>Adjust for seasonal demand changes</li>
+                            <li>Consider competitor pricing</li>
+                            <li>Track reasons for audit purposes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Product selection change handler
+    document.getElementById('product_id').addEventListener('change', function() {
+        const productId = this.value;
+        
+        if (productId) {
+            // Fetch product details (in real app, this would be an AJAX call)
+            // For demo, we'll use hardcoded data
+            const products = {
+                // This would be populated from your database
+                1: { name: 'Laptop Computer', cost_price: 800, selling_price: 1200 },
+                2: { name: 'Wireless Mouse', cost_price: 15, selling_price: 25 },
+                3: { name: 'USB Keyboard', cost_price: 25, selling_price: 40 }
+            };
+            
+            const product = products[productId];
+            if (product) {
+                updatePricePreview(product);
+            }
+        } else {
+            document.getElementById('pricePreview').innerHTML = '<p class="text-muted">Select a product to see price impact</p>';
+        }
+    });
+    
+    // Price input change handlers
+    document.getElementById('cost_price').addEventListener('input', function() {
+        updatePriceImpact();
+    });
+    
+    document.getElementById('selling_price').addEventListener('input', function() {
+        updatePriceImpact();
+    });
+    
+    function updatePricePreview(product) {
+        const currentCost = document.getElementById('cost_price').value || product.cost_price;
+        const currentSelling = document.getElementById('selling_price').value || product.selling_price;
+        
+        const profitMargin = ((currentSelling - currentCost) / currentSelling * 100).toFixed(1);
+        const profitAmount = (currentSelling - currentCost).toFixed(2);
+        
+        let costIndicator = '';
+        let sellingIndicator = '';
+        
+        if (document.getElementById('cost_price').value) {
+            const costDiff = document.getElementById('cost_price').value - product.cost_price;
+            costIndicator = costDiff > 0 ? 
+                '<span class="price-indicator price-up">↑</span>' : 
+                '<span class="price-indicator price-down">↓</span>';
+        }
+        
+        if (document.getElementById('selling_price').value) {
+            const sellingDiff = document.getElementById('selling_price').value - product.selling_price;
+            sellingIndicator = sellingDiff > 0 ? 
+                '<span class="price-indicator price-up">↑</span>' : 
+                '<span class="price-indicator price-down">↓</span>';
+        }
+        
+        document.getElementById('pricePreview').innerHTML = `
+            <div class="product-info">
+                <h6>UGX{product.name}</h6>
+                <div class="current-prices">
+                    <div class="price-box">
+                        <strong>Current Cost</strong>
+                        <div class="price">UGX${product.cost_price.toFixed(2)}</div>
+                    </div>
+                    <div class="price-box">
+                        <strong>Current Selling</strong>
+                        <div class="price">UGX${product.selling_price.toFixed(2)}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <h6>New Prices Preview:</h6>
+                <div class="current-prices">
+                    <div class="price-box">
+                        <strong>New Cost ${costIndicator}</strong>
+                        <div class="price">UGX${parseFloat(currentCost).toFixed(2)}</div>
+                    </div>
+                    <div class="price-box">
+                        <strong>New Selling ${sellingIndicator}</strong>
+                        <div class="price">UGX${parseFloat(currentSelling).toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="profit-margin">
+                    <strong>Profit Margin:</strong> ${profitMargin}%
+                    <br>
+                    <strong>Profit per Unit:</strong> UGX${profitAmount}
+                </div>
+            </div>
+        `;
+    }
+    
+    function updatePriceImpact() {
+        const productId = document.getElementById('product_id').value;
+        if (productId) {
+            // Re-trigger price preview update
+            document.getElementById('product_id').dispatchEvent(new Event('change'));
+        }
+    }
+    
+    // Auto-focus on product selection
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('product_id').focus();
+    });
+    
+    // Form validation enhancement
+    document.getElementById('stockForm').addEventListener('submit', function(e) {
+        const quantity = document.getElementById('quantity').value;
+        const costPrice = document.getElementById('cost_price').value;
+        const sellingPrice = document.getElementById('selling_price').value;
+        const reason = document.getElementById('reason').value;
+        
+        // Validate if price change requires reason
+        if ((costPrice || sellingPrice) && !reason.trim()) {
+            e.preventDefault();
+            alert('Please provide a reason for the price change.');
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    });
+</script>
+{% endblock %}

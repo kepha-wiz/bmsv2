@@ -1,0 +1,596 @@
+import os
+
+# Create directories
+os.makedirs('app/templates', exist_ok=True)
+os.makedirs('app/templates/auth', exist_ok=True)
+os.makedirs('app/static/css', exist_ok=True)
+os.makedirs('app/static/js', exist_ok=True)
+
+# Create base.html
+with open('app/templates/base.html', 'w') as f:
+    f.write("""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Inventory Management System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>""")
+
+# Create login.html
+with open('app/templates/auth/login.html', 'w') as f:
+    f.write("""{% extends "base.html" %}
+
+{% block title %}Login - Inventory Management System{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-width: 400px;
+        width: 100%;
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    .login-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px;
+        text-align: center;
+        color: white;
+    }
+    
+    .login-header .logo {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 24px;
+        color: #667eea;
+    }
+    
+    .login-body {
+        padding: 40px 30px;
+    }
+    
+    .form-floating {
+        margin-bottom: 20px;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 12px 15px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-login {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        width: 100%;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .divider {
+        text-align: center;
+        margin: 25px 0;
+        position: relative;
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e0e0e0;
+    }
+    
+    .divider span {
+        background: white;
+        padding: 0 15px;
+        position: relative;
+        color: #999;
+        font-size: 14px;
+    }
+    
+    .social-login {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .social-btn {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        background: white;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .social-btn:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+        transform: translateY(-2px);
+        color: #667eea;
+    }
+    
+    .register-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+    }
+    
+    .register-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .register-link a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    
+    .input-group-text {
+        background: transparent;
+        border: 2px solid #e0e0e0;
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+    }
+    
+    .input-group .form-control {
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #999;
+        z-index: 10;
+    }
+    
+    .password-toggle:hover {
+        color: #667eea;
+    }
+    
+    .form-floating {
+        position: relative;
+    }
+    
+    .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .forgot-link {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .forgot-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+            </div>
+            <h3 class="mb-0">Inventory System</h3>
+            <p class="mb-0 mt-2 opacity-75">Sign in to your account</p>
+        </div>
+        
+        <div class="login-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{% if category == 'danger' %}exclamation-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" id="loginForm">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-floating mb-3">
+                    {{ form.username(class="form-control", placeholder="Username", id="floatingUsername") }}
+                    <label for="floatingUsername">
+                        <i class="fas fa-user me-2"></i>Username
+                    </label>
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.username.errors %}
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-floating mb-3 position-relative">
+                    {{ form.password(class="form-control", placeholder="Password", id="floatingPassword") }}
+                    <label for="floatingPassword">
+                        <i class="fas fa-lock me-2"></i>Password
+                    </label>
+                    <span class="password-toggle" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </span>
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.password.errors %}
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="remember-forgot">
+                    <div class="form-check">
+                        {{ form.remember_me(class="form-check-input", id="rememberCheck") }}
+                        <label class="form-check-label" for="rememberCheck">
+                            Remember me
+                        </label>
+                    </div>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    <span id="loginBtnText">Sign In</span>
+                </button>
+            </form>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
+            <div class="social-login">
+                <a href="#" class="social-btn">
+                    <i class="fab fa-google"></i>
+                    <span>Google</span>
+                </a>
+                <a href="#" class="social-btn">
+                    <i class="fab fa-microsoft"></i>
+                    <span>Microsoft</span>
+                </a>
+            </div>
+            
+            <div class="register-link">
+                Don't have an account? 
+                <a href="{{ url_for('auth.register') }}">Register here</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Demo Credentials Card -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="card" style="width: 300px;">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Demo Credentials</h6>
+        </div>
+        <div class="card-body">
+            <p class="mb-2"><strong>Admin:</strong></p>
+            <p class="mb-1 small">Username: <code>admin</code></p>
+            <p class="mb-3 small">Password: <code>admin123</code></p>
+            
+            <p class="mb-2"><strong>Employee:</strong></p>
+            <p class="mb-1 small">Username: <code>employee</code></p>
+            <p class="mb-0 small">Password: <code>emp123</code></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle password visibility
+    function togglePassword() {
+        const passwordInput = document.getElementById('floatingPassword');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+    
+    // Form submission with loading state
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        
+        // Show loading state
+        loginBtn.disabled = true;
+        loginBtnText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing in...';
+        
+        // Simulate loading (remove this in production)
+        setTimeout(() => {
+            // Form will submit normally
+        }, 500);
+    });
+    
+    // Auto-focus on username field
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('floatingUsername').focus();
+    });
+    
+    // Add input validation feedback
+    document.getElementById('floatingUsername').addEventListener('input', function() {
+        if (this.value.length > 0) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+        }
+    });
+    
+    document.getElementById('floatingPassword').addEventListener('input', function() {
+        if (this.value.length > 0) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+        }
+    });
+    
+    // Handle forgot password
+    document.querySelector('.forgot-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('Password reset functionality would be implemented here. Please contact administrator.');
+    });
+    
+    // Handle social login
+    document.querySelectorAll('.social-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const provider = this.querySelector('span').textContent;
+            alert(`${provider} login integration would be implemented here.`);
+        });
+    });
+</script>
+{% endblock %}""")
+
+# Create style.css
+with open('app/static/css/style.css', 'w') as f:
+    f.write("""/* Custom styles for Inventory Management System */
+:root {
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.btn {
+    border-radius: 0.375rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Animation for alerts */
+.alert {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}""")
+
+# Create main.js
+with open('app/static/js/main.js', 'w') as f:
+    f.write("""// Main JavaScript file for Inventory Management System
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.remove();
+            }, 500);
+        }, 5000);
+    });
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Format currency values
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'UGX'
+    }).format(amount);
+}
+
+// Confirm before deletion
+function confirmDelete(message) {
+    return confirm(message || 'Are you sure you want to delete this item?');
+}""")
+
+print("Files created successfully!")

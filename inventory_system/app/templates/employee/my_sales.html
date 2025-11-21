@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}My Sales{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">My Sales</h2>
+
+    {% if sales %}
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Quantity Sold</th>
+                    <th>Price per Unit</th>
+                    <th>Total Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.id }}</td>
+                        <td>{{ sale.product.name }}</td>
+                        <td>{{ sale.product.sku }}</td>
+                        <td>{{ sale.quantity_sold }}</td>
+                        <td>UGX{{ sale.price_per_unit | round(2) }}</td>
+                        <td>UGX{{ sale.total_amount | round(2) }}</td>
+                        <td>{{ sale.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You have not made any sales yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
